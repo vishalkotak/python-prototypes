@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Generator
 
 # Without generators
 def first_n(n : int) -> List[int]:
@@ -34,7 +34,7 @@ sum_first_n_generator_pattern = sum(FirstNGeneratorPattern(100000))
 print(f"Sum of first n numbers using generator pattern through class: {sum_first_n_generator_pattern}")
 
 # With generator functions
-def first_n_generator(n):
+def first_n_generator(n: int) -> Generator[int, None, None]:
     num = 0
     while num < n:
         yield num
