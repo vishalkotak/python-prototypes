@@ -1,6 +1,6 @@
 from typing import List
 
-## Without generators
+# Without generators
 def first_n(n : int) -> List[int]:
     num, nums = 0, []
     while num < n:
@@ -11,7 +11,7 @@ def first_n(n : int) -> List[int]:
 sum_of_first_n = sum(first_n(100000))
 print(f"Sum of first n numbers using return statement: {sum_of_first_n}")
 
-## With generator pattern using class
+# With generator pattern using class
 class FirstNGeneratorPattern():
 
     def __init__(self, n: int):
