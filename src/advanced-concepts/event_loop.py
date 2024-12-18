@@ -19,7 +19,7 @@ def third_function() -> Tuple[bool, int]:
 
 
 # Event Loop
-class EventLoop():
+class EventLoop:
 
     def __init__(self):
         self.tasks = []
@@ -29,7 +29,7 @@ class EventLoop():
 
     def run(self):
         while self.tasks:
-            self.tasks.sort(key=lambda task: task[1]) # ineffecient for now
+            self.tasks.sort(key=lambda task: task[1])  # ineffecient for now
             current_task, task_time = self.tasks[0]
             if time.time() >= task_time:
                 self.tasks.pop(0)
