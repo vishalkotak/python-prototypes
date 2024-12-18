@@ -18,7 +18,7 @@ async def get_sse_data():
 @app.get("/stream")
 async def stream():
     # StreamingResponse is a construct provided by FastAPI.
-    # text/event-stream informs the browser that it is a stream response 
+    # text/event-stream informs the browser that it is a stream response
     # so do not close the connection.
     return StreamingResponse(get_sse_data(), media_type="text/event-stream")
 
