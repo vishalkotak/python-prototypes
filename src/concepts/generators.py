@@ -1,4 +1,5 @@
-from typing import List, Generator
+from typing import Generator, List
+
 
 # Without generators
 def first_n(n : int) -> List[int]:

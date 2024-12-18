@@ -1,6 +1,6 @@
 import time
-
 from typing import Tuple
+
 
 # Dummy functions
 def first_function() -> Tuple[bool, int]:

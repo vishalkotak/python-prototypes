@@ -1,7 +1,9 @@
-import mysql.connector
-from mysql.connector import Error
 import threading
 import time
+
+import mysql.connector
+from mysql.connector import Error
+
 
 def connect_to_mysql():
     try:
