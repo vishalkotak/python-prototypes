@@ -12,7 +12,7 @@ jobs = dict()
 async def submit():
     job_id = f"job-{time.time()}"
     jobs[job_id] = 0
-    asyncio.create_task(update(job_id, 0))
+    asyncio.create_task(update(job_id))
     return {"jobId": job_id}
 
 
@@ -23,7 +23,7 @@ async def check_status(job_id: str):
     return {"job_id": jobs[job_id]}
 
 
-async def update(job_id: str, progress: int):
+async def update(job_id: strß):
     while jobs[job_id] < 100:
         await asyncio.sleep(1)
         jobs[job_id] = jobs[job_id] + 10
