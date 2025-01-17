@@ -8,6 +8,8 @@ authors = ["Vishal Kotak <vishal.sanjiv.kotak@gmail.com>"]
 python = "^3.10"
 fastapi = "^0.115.6"
 uvicorn = "^0.34.0"
+elasticsearch = "7.13.0"
+python-json-logger = "^3.2.1"
 
 [tool.poetry.dev-dependencies]
 
