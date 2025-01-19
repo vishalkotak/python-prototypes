@@ -61,3 +61,25 @@ SELECT * from test_locks WHERE id = 1 FOR SHARE;
 
 # The transaction will be put on hold until the first transaction is committed and releases the lock.
 ```
+
+### Skip Locked (SKIP LOCKED)
+- Removes the locked rows from the result set.
+
+##### Session 1
+```
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR SHARE;
+
+# Transaction successful
+```
+
+##### Session 2
+```
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR UPDATE SKIP LOCKED;
+
+# Without the SKIP LOCKED, this transaction would have been blocked. This transaction succeds without returning 
+any result as the locked row is skipped.
+```
