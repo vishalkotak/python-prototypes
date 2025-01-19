@@ -1,0 +1,41 @@
+# Locking strategies
+
+### Prerequisites
+```
+docker pull postgres
+
+docker run --name postgres -d -e POSTGRES_PASSWORD=<my_password> -p 5432:5432 postgres
+
+```
+
+### Shared Locks (FOR SHARE)
+- Reserved for read by current transactions
+- Othert transactions can read the locked rows but not modify
+- If the current transaction wants to update, it needs to acquire an exclusive lock
+
+##### Session 1
+```
+docker run exec -it postgres -U postgres psql
+
+CREATE TABLE test_locks (id SERIAL PRIMARY KEY, data TEXT); 
+
+INSERT INTO test_locks (data) VALUES ('Row 1'), ('Row 2'), ('Row 3');
+
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR SHARE;
+```
+
+##### Session 2
+```
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR SHARE;
+
+# Transaction success
+
+UPDATE test_locks SET data = 'Updated Row 1' WHERE id = 1;
+
+# The transaction will be put on hold until the first transaction is committed and releases the lock.
+
+```

@@ -11,10 +11,10 @@ r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 def main():
     # Expected output:
-    # User 3 status: None
-    # User 1 status: 1737212862
-    # User 2 status: 1737212862
-    # User 1 status after idle time: None
+    # User 3 status: None (User3 has not been stored in redis yet)
+    # User 1 status: 1737212862 
+    # User 2 status: 1737212862 
+    # User 1 status after idle time: None (Time elapsed since the last update > 30 sec)
     # User 2 status after idle time: None
     current_epoch_time = int(time.time())
     r.set("user1", current_epoch_time, ex=30)
