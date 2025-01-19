@@ -39,3 +39,25 @@ UPDATE test_locks SET data = 'Updated Row 1' WHERE id = 1;
 # The transaction will be put on hold until the first transaction is committed and releases the lock.
 
 ```
+
+### Exclusive Locks (FOR UPDATE)
+- Reserved for write by the current transaction
+- Other transactions cannot read/write the locked rows
+
+##### Session 1
+```
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR UPDATE;
+
+# Transaction successful
+```
+
+##### Session 2
+```
+BEGIN;
+
+SELECT * from test_locks WHERE id = 1 FOR SHARE;
+
+# The transaction will be put on hold until the first transaction is committed and releases the lock.
+```
