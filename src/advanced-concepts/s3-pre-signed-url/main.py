@@ -5,13 +5,18 @@
 # AWS_SECRET_ACCESS_KEY=
 # AWS_REGION=
 
+
 import boto3
 import requests
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
+
 BUCKET_NAME = 'my-signed-url-test-bucket'
+FILE_NAME = 'data/test.txt'
+
 
 def generate_presigned_url(file_name):
     s3_client = boto3.client('s3')
@@ -44,6 +49,7 @@ def upload_file_to_presigned_url(url, file_path):
     except Exception as e:
         print(f"Error uploading file: {e}")
 
+
 def read_file_from_presigned_url(url):
     try:
         response = requests.get(url)
@@ -56,7 +62,6 @@ def read_file_from_presigned_url(url):
     except Exception as e:
         print(f"Error reading file: {e}")
 
-FILE_NAME = 'data/test.txt'
 
 presigned_url = generate_presigned_url(FILE_NAME)
 if presigned_url:
