@@ -1,3 +1,10 @@
+# Wanted to learn about pre-signed URL's on AWS S3.
+
+# Environment variables needed:
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+# AWS_REGION=
+
 import boto3
 import requests
 from dotenv import load_dotenv
