@@ -13,6 +13,8 @@ python-json-logger = "^3.2.1"
 bitarray = "^3.0.0"
 mmh3 = "^5.0.1"
 redis = "^5.2.1"
+boto3 = "^1.37.18"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 
