@@ -31,9 +31,9 @@ def upload_file_to_presigned_url(url, file_path):
             headers = {'Content-Type': 'text/plain'}
             response = requests.put(url, data=f, headers=headers)
         if response.status_code == 200:
-            print("✅ Upload successful!")
+            print("Upload successful!")
         else:
-            print(f"❌ Upload failed! Status: {response.status_code}, Response: {response.text}")
+            print(f"Upload failed! Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
         print(f"Error uploading file: {e}")
 
@@ -41,11 +41,11 @@ def read_file_from_presigned_url(url):
     try:
         response = requests.get(url)
         if response.status_code == 200:
-            print("✅ Reading successful!")
+            print("Reading successful!")
             print(f"File contents: {response.content}")
             print(response.text)  # or response.content for binary
         else:
-            print(f"❌ Reading failed! Status: {response.status_code}, Response: {response.text}")
+            print(f"Reading failed! Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
         print(f"Error reading file: {e}")
 
