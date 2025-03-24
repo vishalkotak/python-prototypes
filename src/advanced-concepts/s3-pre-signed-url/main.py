@@ -56,7 +56,6 @@ def read_file_from_presigned_url(url):
         if response.status_code == 200:
             print("Reading successful!")
             print(f"File contents: {response.content}")
-            print(response.text)  # or response.content for binary
         else:
             print(f"Reading failed! Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
