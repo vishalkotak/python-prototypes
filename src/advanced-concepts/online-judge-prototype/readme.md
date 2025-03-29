@@ -173,8 +173,4 @@ This project demonstrates a prototype for a code execution platform using FastAP
 ## Notes
 
 * This is a prototype and may require further development for production use.
-* Error handling and security measures should be implemented.
-* Consider using a more robust message queue like AWS SQS or RabbitMQ with advanced features.
-* Database migrations should be implemented for managing database schema changes.
-* Authentication and authorization should be added to secure the API.
 
