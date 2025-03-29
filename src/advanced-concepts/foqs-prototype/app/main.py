@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 import mysql.connector
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_NAME = os.getenv("DB_NAME", "foqsdb")
