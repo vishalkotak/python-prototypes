@@ -1,0 +1,2 @@
+# python_worker/requirements.txt
+# Add any necessary Python packages here
