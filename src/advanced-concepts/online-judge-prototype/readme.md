@@ -1,4 +1,4 @@
-```
+
 # Code Execution Prototype with FastAPI, PostgreSQL, RabbitMQ, and Redis
 
 This project demonstrates a prototype for a code execution platform using FastAPI, PostgreSQL, RabbitMQ, and Redis. It allows users to submit code, execute it in isolated Docker containers, and retrieve the execution status.
@@ -177,4 +177,4 @@ This project demonstrates a prototype for a code execution platform using FastAP
 * Consider using a more robust message queue like AWS SQS or RabbitMQ with advanced features.
 * Database migrations should be implemented for managing database schema changes.
 * Authentication and authorization should be added to secure the API.
-```
+
