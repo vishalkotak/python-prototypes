@@ -1,5 +1,5 @@
 
-# Code Execution Prototype with FastAPI, PostgreSQL, RabbitMQ, and Redis
+# Online Judge Prototype
 
 This project demonstrates a prototype for a code execution platform using FastAPI, PostgreSQL, RabbitMQ, and Redis. It allows users to submit code, execute it in isolated Docker containers, and retrieve the execution status.
 
@@ -33,7 +33,7 @@ This project demonstrates a prototype for a code execution platform using FastAP
 
     ```bash
     python3 -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    source venv/bin/activate
     ```
 
 3.  **Install dependencies:**
