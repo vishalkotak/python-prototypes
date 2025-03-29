@@ -25,13 +25,16 @@ def get_db_connection():
 
 def execute_code(submission_id, code):
 
-    with open('temp_code.py', 'w') as f:
+    filename = f"submission_{submission_id}.py"
+    filepath = os.path.join(os.getcwd(), filename)
+
+    # Write the code to the unique file
+    with open(filepath, 'w') as f:
         f.write(code)
-    print(f"Created file...")
     try:
         # Run the code in the Docker container
         output = client.containers.run('python-worker', 
-                                     command='python temp_code.py', 
+                                     command=f'python {filename}',
                                      volumes={os.getcwd(): {'bind': '/app', 'mode': 'rw'}},
                                      working_dir='/app',
                                      stderr=True,
@@ -57,7 +60,7 @@ def execute_code(submission_id, code):
         cur.close()
         conn.close()
 
-    os.remove('temp_code.py')
+    os.remove(filepath)
 
 
 def callback(ch, method, properties, body):
