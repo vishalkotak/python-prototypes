@@ -4,8 +4,9 @@ import uuid
 import psycopg2
 import redis
 import pika # For RabitMQ
-import os
+import asyncio
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -51,6 +52,26 @@ async def submit(submission: Submission):
     channel.queue_declare(queue='code_execution_tasks')
     channel.basic_publish(exchange='', routing_key='code_execution_tasks', body=f'{submission_id},{submission.code}')
     connection.close()
+
+    return {"submission_id": submission_id}
+
+
+@app.get("/status/{submission_id}")
+async def get_status(submission_id: str):
+    result_json = r.get(f"submission:{submission_id}")
+    print(f"Results JSON {result_json}")
+    if result_json:
+        result = json.loads(result_json)
+        r.delete(f"submission:{submission_id}")
+        return {"status": result['status'], "result": result.get('result')} if result.get('result') else {"status": result['status']}
+
+    while True:
+        await asyncio.sleep(0.1)
+        result_json = r.get(f"submission:{submission_id}")
+        if result_json:
+            result = json.loads(result_json)
+            r.delete(f"submission:{submission_id}")
+            return {"status": result['status'], "result": result.get('result')} if result.get('result') else {"status": result['status']}
 
 
 if __name__ == "__main__":

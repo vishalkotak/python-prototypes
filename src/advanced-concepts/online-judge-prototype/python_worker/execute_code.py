@@ -3,11 +3,12 @@ import psycopg2
 import os
 import pika
 from dotenv import load_dotenv
-
+import json
+import redis
 
 load_dotenv()
 client = docker.from_env()
-
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 def get_rabbitmq_connection():
     return pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -51,6 +52,9 @@ def execute_code(submission_id, code):
         cur.close()
         conn.close()
 
+        result_data = {"status": result, "result": output_str}
+        r.set(f"submission:{submission_id}", json.dumps(result_data))
+
     except Exception as e:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -59,6 +63,8 @@ def execute_code(submission_id, code):
         conn.commit()
         cur.close()
         conn.close()
+        result_data = {"status": 'failed', "result": str(e)}
+        r.set(f"submission:{submission_id}", json.dumps(result_data))
 
     os.remove(filepath)
 
