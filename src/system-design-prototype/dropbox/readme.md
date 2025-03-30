@@ -116,14 +116,13 @@ Open two separate terminals in the project root directory.
 
 * **Terminal 1: Start File Service**
     ```bash
-    uvicorn file_service:app --host 0.0.0.0 --port 8000 --reload
+    poetry run python file_service.py
     ```
 
 * **Terminal 2: Start Sync Service**
     ```bash
-    uvicorn sync_service:app --host 0.0.0.0 --port 8001 --reload
+    poetry run python sync_service.py
     ```
-    The `--reload` flag automatically restarts the server when code changes are detected (useful for development).
 
 ## Running the Client Simulation
 
