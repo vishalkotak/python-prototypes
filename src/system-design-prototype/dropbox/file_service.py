@@ -2,7 +2,7 @@ import os
 import uuid
 import io
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import psycopg2
 import uvicorn
@@ -12,6 +12,8 @@ from fastapi.responses import StreamingResponse
 from minio import Minio
 from minio.error import S3Error
 from psycopg2.extras import RealDictCursor
+from pydantic import BaseModel
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -29,6 +31,7 @@ MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET", "rawfiles")
 MINIO_SECURE = False
+PRESIGNED_URL_EXPIRY_MINUTES = 15
 
 def get_db_connection():
     try:
@@ -62,56 +65,82 @@ except Exception as e:
     raise HTTPException(status_code=500, detail=f"MinIO client initialization error: {e}")
 
 
-@app.post("/upload", status_code=201)
-async def upload_file(file: UploadFile = File(...)):
-    if not file:
-        raise HTTPException(status_code=400, detail="No file sent.")
-    if not file.filename:
-         raise HTTPException(status_code=400, detail="File name is missing.")
-    conn = None
-    cursor = None
-    file_id = uuid.uuid4()
-    original_filename = file.filename
-    minio_object_name = f"uploads/{file_id}/{original_filename}"
+class GenerateUploadUrlRequest(BaseModel):
+    filename: str
+    content_type: Optional[str] = 'application/octet-stream'
+
+
+class CommitUploadRequest(BaseModel):
+    file_id: uuid.UUID
+    filename: str
+    size_bytes: int
+
+
+@app.post("/generate_upload_url")
+async def generate_upload_url(request_data: GenerateUploadUrlRequest):
     try:
-        contents = await file.read()
-        file_size = len(contents)
-        file_stream = io.BytesIO(contents)
-        logging.info(f"Uploading {original_filename} ({file_size} bytes) to MinIO as {minio_object_name}")
-        minio_client.put_object(
+        file_id = uuid.uuid4()
+        original_filename = request_data.filename
+        minio_object_name = f"uploads/{file_id}/{original_filename}"
+        presigned_url = minio_client.presigned_put_object(
             MINIO_BUCKET,
             minio_object_name,
-            file_stream,
-            length=file_size,
-            content_type=file.content_type
+            expires=timedelta(minutes=PRESIGNED_URL_EXPIRY_MINUTES)
         )
-        logging.info(f"Successfully uploaded to MinIO.")
+        logging.info(f"Generated pre-signed PUT URL for file_id: {file_id}, object: {minio_object_name}")
+        return {
+            "file_id": str(file_id),
+            "upload_url": presigned_url,
+            "object_name": minio_object_name
+        }
+    except Exception as e:
+        logging.error(f"Generic error generating pre-signed URL: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+
+
+@app.post("/commit_upload", status_code=201) 
+async def commit_upload(commit_data: CommitUploadRequest):
+    conn = None
+    cursor = None
+    file_id = commit_data.file_id
+    filename = commit_data.filename
+    size_bytes = commit_data.size_bytes
+    minio_object_name = f"uploads/{file_id}/{filename}"
+    try:
+        stat = minio_client.stat_object(MINIO_BUCKET, minio_object_name)
+        if stat.size != size_bytes:
+            logging.warning(f"Committed size ({size_bytes}) differs from MinIO size ({stat.size}) for {file_id}")
+        logging.info(f"Verified object {minio_object_name} exists in MinIO before DB commit.")
+    except S3Error as e:
+        logging.error(f"Failed to verify object {minio_object_name} exists in MinIO before commit: {e}")
+        raise HTTPException(status_code=400, detail=f"Upload commit failed: Object not found in storage or verification error ({e})")
+    try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        timestamp = datetime.now(datetime.now().astimezone().tzinfo)
+        timestamp = datetime.now(timezone.utc)
         cursor.execute(
             """
             INSERT INTO file_metadata (file_id, file_name, minio_path, last_modified, size_bytes)
             VALUES (%s, %s, %s, %s, %s)
             """,
-            (str(file_id), original_filename, minio_object_name, timestamp, file_size)
+            (str(file_id), filename, minio_object_name, timestamp, size_bytes)
         )
         conn.commit()
-        logging.info(f"Metadata stored in DB for file_id: {file_id}")
+        logging.info(f"Metadata committed to DB for file_id: {file_id}")
+
         return {
-            "message": "File uploaded successfully",
-            "file_id": str(file_id),
-            "filename": original_filename,
-            "size": file_size
+            "message": "Upload committed successfully",
+            "file_id": str(file_id)
         }
+    except HTTPException as http_exc:
+         raise http_exc
     except Exception as e:
-        logging.error(f"Generic error during upload: {e}")
+        logging.error(f"Generic error during commit: {e}")
         if conn: conn.rollback()
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred during commit: {e}")
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
-        await file.close()
 
 
 @app.get("/get_file/{file_id}")

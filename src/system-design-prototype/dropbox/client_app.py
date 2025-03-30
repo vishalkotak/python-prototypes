@@ -2,6 +2,7 @@ import requests
 import os
 from datetime import datetime, timedelta, timezone
 import logging
+import mimetypes
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,24 +18,58 @@ def create_dummy_file():
         with open(DUMMY_FILE_NAME, "w") as f:
             f.write(DUMMY_FILE_CONTENT)
         logging.info(f"Created dummy file: {DUMMY_FILE_NAME}")
+        return os.path.abspath(DUMMY_FILE_NAME)
     except Exception as e:
         logging.error(f"Failed to create dummy file: {e}")
         raise
 
 
-def upload_file(file_path):
-    upload_url = f"{FILE_SERVICE_URL}/upload"
+def upload_file_presigned(file_path):
+    if not os.path.exists(file_path):
+        logging.error(f"File not found: {file_path}")
+        return None
+    if not os.path.exists(file_path):
+        logging.error(f"File not found: {file_path}")
+        return None
+    filename = os.path.basename(file_path)
+    file_id = None
+    upload_url = None
     try:
+        logging.info(f"Requesting upload URL for: {filename}")
+        init_url = f"{FILE_SERVICE_URL}/generate_upload_url"
+        content_type, _ = mimetypes.guess_type(file_path)
+        if not content_type:
+            content_type = 'application/octet-stream'
+        init_payload = {"filename": filename, "content_type": content_type}
+        response_init = requests.post(init_url, json=init_payload, timeout=30)
+        response_init.raise_for_status()
+        init_data = response_init.json()
+        file_id = init_data.get('file_id')
+        upload_url = init_data.get('upload_url')
+        if not file_id or not upload_url:
+            raise ValueError("Missing file_id or upload_url in response")
+        logging.info(f"Received file_id: {file_id}")
+        logging.info(f"Uploading file data directly to MinIO...")
         with open(file_path, 'rb') as f:
-            files = {'file': (os.path.basename(file_path), f, 'text/plain')}
-            response = requests.post(upload_url, files=files, timeout=60)
-            response.raise_for_status()
-            logging.info(f"Upload Response: {response.status_code}")
-            result = response.json()
-            logging.info(f"Server response: {result}")
-            return result.get('file_id')
+            headers = {'Content-Type': content_type}
+            response_put = requests.put(upload_url, data=f, headers=headers, timeout=300)
+            response_put.raise_for_status()
+        file_size = os.path.getsize(file_path)
+        logging.info(f"File data upload successful (Status: {response_put.status_code})")
+        
+        logging.info(f"Confirming upload with File Service for file_id: {file_id}")
+        commit_url = f"{FILE_SERVICE_URL}/commit_upload"
+        commit_payload = {
+            "file_id": file_id,
+            "filename": filename,
+            "size_bytes": file_size
+        }
+        response_commit = requests.post(commit_url, json=commit_payload, timeout=30)
+        response_commit.raise_for_status()
+        logging.info(f"Upload commit successful (Status: {response_commit.status_code})")
+        return file_id
     except Exception as e:
-        logging.error(f"An error occurred during upload: {e}")
+        logging.error(f"An unexpected error occurred during upload: {e}")
         return None
     
 
@@ -89,10 +124,10 @@ def cleanup_dummy_file():
 
 if __name__ == "__main__":
     try:
-        create_dummy_file()
+        dummy_file_path = create_dummy_file()
         time_before_upload = datetime.now(timezone.utc) - timedelta(seconds=5) 
         logging.info("\n--- Attempting Upload ---")
-        uploaded_file_id = upload_file(DUMMY_FILE_NAME)
+        uploaded_file_id = upload_file_presigned(dummy_file_path)
 
         if uploaded_file_id:
             logging.info(f"File uploaded successfully with ID: {uploaded_file_id}")
