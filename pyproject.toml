@@ -23,6 +23,7 @@ docker = "^7.1.0"
 beautifulsoup4 = "^4.13.3"
 pymongo = "^4.11.3"
 python-multipart = "^0.0.20"
+graphene = "^3.4.3"
 
 [tool.poetry.dev-dependencies]
 
