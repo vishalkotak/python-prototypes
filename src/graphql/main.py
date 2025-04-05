@@ -1,4 +1,4 @@
-from graphene import Schema, ObjectType, String, Int, Field
+from graphene import Schema, ObjectType, String, Int, Field, List
 
 
 class UserType(ObjectType):
@@ -9,6 +9,7 @@ class UserType(ObjectType):
 
 class Query(ObjectType):
     user = Field(UserType, user_id=Int())
+    user_by_min_age = List(UserType, min_age=Int())
 
     users = [
         {'id':1, 'name': 'Test1', 'age':30},
@@ -21,12 +22,15 @@ class Query(ObjectType):
         matched_users = [user for user in Query.users if user['id'] == user_id]
         return matched_users[0] if matched_users else None
 
+    def resolve_user_by_min_age(self, info, min_age):
+        matched_users = [user for user in Query.users if user['age'] >= min_age]
+        return matched_users
 
 schema = Schema(query=Query)
 
 gql = '''
 query {
-    user(userId: 2) {
+    userByMinAge(minAge: 32) {
         id
         name
         age
