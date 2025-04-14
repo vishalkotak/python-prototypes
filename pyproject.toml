@@ -24,6 +24,7 @@ beautifulsoup4 = "^4.13.3"
 pymongo = "^4.11.3"
 python-multipart = "^0.0.20"
 graphene = "^3.4.3"
+torch = "^2.6.0"
 
 [tool.poetry.dev-dependencies]
 
